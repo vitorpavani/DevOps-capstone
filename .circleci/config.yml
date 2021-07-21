@@ -53,7 +53,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [backend-build-{{ checksum "backend/package.json" }}]
+          keys: ['backend-build-{{ checksum "backend/package.json" }}']
       - run:
           name: Test the code
           command: |
