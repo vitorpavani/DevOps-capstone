@@ -3,11 +3,16 @@ version: 2.1
 jobs:
   build-frontend:
     docker:
-      - image: circleci/node:14.17.0-jessie
+      - image: python:3.7-alpine3.12
     steps:
       - checkout
       - restore_cache:
           keys: [frontend-build]
+      - run:
+          name: Install system dependencies
+          command: |
+            apk add --update tar gzip ansible nodejs npm curl
+            pip install awscli
       - run:
           name: Build front-end
           command: |
@@ -20,11 +25,16 @@ jobs:
 
   build-backend:
     docker:
-      - image: circleci/node:14.17.0-jessie
+      - image: python:3.7-alpine3.12
     steps:
       - checkout
       - restore_cache:
           keys: [backend-build]
+      - run:
+          name: Install system dependencies
+          command: |
+            apk add --update tar gzip ansible nodejs npm curl
+            pip install awscli
       - run:
           name: Back-end build
           command: |
@@ -37,11 +47,16 @@ jobs:
 
   test-frontend:
     docker:
-      - image: circleci/node:14.17.0-jessie
+      - image: python:3.7-alpine3.12
     steps:
       - checkout
       - restore_cache:
           keys: [frontend-build]
+      - run:
+          name: Install system dependencies
+          command: |
+            apk add --update tar gzip ansible nodejs npm curl
+            pip install awscli
       - run:
           name: Test the code
           command: |
@@ -50,11 +65,16 @@ jobs:
 
   test-backend:
     docker:
-      - image: circleci/node:14.17.0-jessie
+      - image: python:3.7-alpine3.12
     steps:
       - checkout
       - restore_cache:
           keys: [backend-build]
+      - run:
+          name: Install system dependencies
+          command: |
+            apk add --update tar gzip ansible nodejs npm curl
+            pip install awscli
       - run:
           name: Test the code
           command: |
