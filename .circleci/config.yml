@@ -6,6 +6,8 @@ jobs:
       - image: cimg/node:16.5.0
     steps:
       - checkout
+      - restore_cache:
+          keys: ['frontend-build-{{ checksum "frontend/package.json" }}']
       - run:
           name: Build front-end
           command: |
@@ -14,13 +16,15 @@ jobs:
             npm run build
       - save_cache:
           paths: [frontend/node_modules]
-          key: frontend-build
+          key: frontend-build-{{ checksum "frontend/package.json" }}
 
   build-backend:
     docker:
       - image: cimg/node:16.5.0
     steps:
       - checkout
+      - restore_cache:
+          keys: ['backend-build-{{ checksum "backend/package.json" }}']
       - run:
           name: Back-end build
           command: |
@@ -28,7 +32,7 @@ jobs:
             npm install
       - save_cache:
           paths: [backend/node_modules]
-          key: backend-build
+          key: backend-build-{{ checksum "backend/package.json" }}
 
   test-frontend:
     docker:
@@ -36,7 +40,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [frontend-build]
+          keys: ['frontend-build-{{ checksum "frontend/package.json" }}']
       - run:
           name: Test the code
           command: |
@@ -49,7 +53,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [backend-build]
+          keys: [backend-build-{{ checksum "backend/package.json" }}]
       - run:
           name: Test the code
           command: |
