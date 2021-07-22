@@ -83,6 +83,13 @@ jobs:
           name: login docker user
           command: |
             echo "$DOCKER_PASSWORD" | docker login --username $DOCKER_USER --password $DOCKER_PASSWORD
+      - run:
+          name: Install hadolint && Lint docker file
+          command: |
+            cd backend
+            wget -O ./hadolint https://github.com/hadolint/hadolint/releases/download/v1.16.3/hadolint-Linux-x86_64 &&\
+            chmod +x ./hadolint      
+            ./hadolint Dockerfile      
       # build the application image
       - run:
           name: build the application image 
@@ -210,7 +217,7 @@ jobs:
 
   deploy-backend:
     docker:
-      - image: "vipavani85/capstone:${CIRCLE_WORKFLOW_ID:0:7}"
+      - image: vipavani85/capstone:${CIRCLE_WORKFLOW_ID:0:7}
     steps:
       - checkout
       - run:
@@ -264,7 +271,7 @@ workflows:
             branches:
               only: main
       - configure-infrastructure:
-          requires: [deploy-infrastructure]
+          requires: [deploy-infrastructure, run-docker]
           filters:
             branches:
               only: main
