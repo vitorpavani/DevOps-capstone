@@ -13,25 +13,7 @@ commands:
               aws cloudformation delete-stack --stack-name "udacitycapstone-frontend-${CIRCLE_WORKFLOW_ID:0:7}"
               aws cloudformation delete-stack --stack-name "udacitycapstone-backend-${CIRCLE_WORKFLOW_ID:0:7}"
 
-jobs:
-  run-docker:
-    machine: true
-    steps:
-        - checkout
-        # start proprietary DB using private Docker image
-        # with credentials stored in the UI
-        - run: |
-            echo "$DOCKER_PASSWORD" | docker login --username $DOCKER_USER --password $DOCKER_PASSWORD
-            docker run hello-world
-
-        # build the application image
-        - run: |
-            cd backend
-            docker build . -t vipavani85/capstone:${CIRCLE_WORKFLOW_ID:0:7}
-
-        # deploy the image
-        - run: docker push vipavani85/capstone:${CIRCLE_WORKFLOW_ID:0:7}
-            
+jobs:            
   build-frontend:
     docker:
       - image: cimg/node:16.5.0
@@ -90,6 +72,29 @@ jobs:
           command: |
             cd backend
             npm run test
+
+  run-docker:
+    machine: true
+    steps:
+      - checkout
+      - restore_cache:
+          keys: ['backend-build-{{ checksum "backend/package.json" }}']        
+      - run:
+          name: login docker user
+          command: |
+            echo "$DOCKER_PASSWORD" | docker login --username $DOCKER_USER --password $DOCKER_PASSWORD
+      # build the application image
+      - run:
+          name: build the application image 
+          command: |
+            cd backend
+            docker build . -t vipavani85/capstone:${CIRCLE_WORKFLOW_ID:0:7}
+
+      # deploy the image
+      - run:
+          name: deploy the image
+          command: |
+            docker push vipavani85/capstone:${CIRCLE_WORKFLOW_ID:0:7}            
 
   deploy-infrastructure:
     docker:
