@@ -16,7 +16,7 @@ commands:
 jobs:            
   build-frontend:
     docker:
-      - image: cimg/node:16.5.0
+      - image: vipavani85/capstone:latest
     steps:
       - checkout
       - restore_cache:
@@ -95,13 +95,13 @@ jobs:
           name: build the application image 
           command: |
             cd backend
-            docker build . -t vipavani85/capstone:${CIRCLE_WORKFLOW_ID:0:7}
+            docker build . -t vipavani85/capstone:latest
 
       # deploy the image
       - run:
           name: deploy the image
           command: |
-            docker push vipavani85/capstone:${CIRCLE_WORKFLOW_ID:0:7}            
+            docker push vipavani85/capstone:latest          
 
   deploy-infrastructure:
     docker:
@@ -217,7 +217,7 @@ jobs:
 
   deploy-backend:
     docker:
-      - image: vipavani85/capstone:${CIRCLE_WORKFLOW_ID:0:7}
+      - image: vipavani85/capstone:latest
     steps:
       - checkout
       - run:
@@ -249,7 +249,47 @@ jobs:
             cd .circleci/ansible
             cat inventory.txt
             ansible-playbook -i inventory.txt  deploy-backend.yml -l web        
-      - destroy-environment         
+      - destroy-environment   
+
+  smoke-test:
+    docker:
+      - image: python:3.7-alpine3.12
+    steps:
+      # Checkout code from git
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+           apk add --update tar gzip ansible nodejs npm curl
+           pip install awscli
+      - run:
+          name: Backend smoke test.
+          command: |
+            export BACKEND_IP=$(aws ec2 describe-instances \
+              --region ${AWS_DEFAULT_REGION} \
+              --filters "Name=tag:Name,Values=backend-ec2-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --query "Reservations[*].Instances[0].PublicDnsName" \
+              --output text)
+            export API_URL="http://${BACKEND_IP}:3030/"
+            echo ${API_URL}
+            if (curl -s ${API_URL}) | grep "API Running"
+            then 
+              return 0
+            else 
+              return 1
+            fi
+      - run:
+          name: Frontend smoke test
+          command: |
+            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-east-1.amazonaws.com/#/employees"
+            echo ${URL}
+            if (curl -s ${URL}) | grep "Welcome"
+            then
+              return 0
+            else
+              return 1
+            fi
+      - destroy-environment            
 
 workflows:
   default:
@@ -285,3 +325,8 @@ workflows:
           filters:
             branches:
               only: main              
+      - smoke-test:
+          requires: [deploy-frontend, deploy-backend]
+          filters:
+            branches:
+              only: main
