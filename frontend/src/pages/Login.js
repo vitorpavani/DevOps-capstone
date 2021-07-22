@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useHistory } from 'react-router-dom';
 import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -12,6 +13,7 @@ import Grid from '@material-ui/core/Grid';
 import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
+import { login } from './actions/auth';
 
 function Copyright() {
   return (
@@ -61,6 +63,28 @@ const useStyles = makeStyles((theme) => ({
 
 export default function SignInSide() {
   const classes = useStyles();
+  const history = useHistory();
+
+  const [user, setUser] = useState({});
+
+  const onChangeHandler = (key, newValue) => {
+    setUser({ ...user, [key]: newValue });
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+
+    login(user.email, user.password).then(({ data, status }) => {
+      if (status === 200) {
+        localStorage.setItem('accessToken', data.accessToken);
+        history.push(`/dashboard`);
+      } else {
+        setUser({});
+        document.getElementById('email').value = '';
+        document.getElementById('password').value = '';
+      }
+    });
+  };
 
   return (
     <Grid container component='main' className={classes.root}>
@@ -85,6 +109,7 @@ export default function SignInSide() {
               name='email'
               autoComplete='email'
               autoFocus
+              onChange={(e) => onChangeHandler('email', e.target.value)}
             />
             <TextField
               variant='outlined'
@@ -96,6 +121,7 @@ export default function SignInSide() {
               type='password'
               id='password'
               autoComplete='current-password'
+              onChange={(e) => onChangeHandler('password', e.target.value)}
             />
             <FormControlLabel
               control={<Checkbox value='remember' color='primary' />}
@@ -107,6 +133,7 @@ export default function SignInSide() {
               variant='contained'
               color='primary'
               className={classes.submit}
+              onClick={handleSubmit}
             >
               Sign In
             </Button>
