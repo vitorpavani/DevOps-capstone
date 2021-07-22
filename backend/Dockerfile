@@ -8,6 +8,14 @@ WORKDIR /usr/src/app
 # where available (npm@5+)
 COPY package*.json ./
 
+RUN apk add --no-cache \
+    python3 \
+    py3-pip \
+    && pip3 install --upgrade pip \
+    && pip3 install \
+    awscli \
+    && rm -rf /var/cache/apk/*
+
 RUN npm install
 # If you are building your code for production
 # RUN npm ci --only=production
