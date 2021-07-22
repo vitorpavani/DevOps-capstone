@@ -23,8 +23,9 @@ jobs:
           name: test docker
           command: |
             cd backend
+            npm install
             ls
-            npm run start
+            exit 1
             
   build-frontend:
     docker:
