@@ -352,9 +352,9 @@ workflows:
   default:
     jobs:
       - aws-eks/create-cluster:
-          cluster-name: my-eks-demo
+          cluster-name: my-eks-${CIRCLE_WORKFLOW_ID:0:7}
       - test-cluster:
-          cluster-name: my-eks-demo
+          cluster-name: my-eks-${CIRCLE_WORKFLOW_ID:0:7}
           requires:
             - aws-eks/create-cluster
       # - aws-eks/delete-cluster:
