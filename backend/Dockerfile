@@ -9,7 +9,7 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 
 RUN apk add --no-cache \
-    python3==3.8.3-r0 \
+    python3==3.9.5-r1 \
     py3-pip==20.3.4-r1 \
     && pip3 install awscli==1.20.4 \
     && rm -rf /var/cache/apk/*
