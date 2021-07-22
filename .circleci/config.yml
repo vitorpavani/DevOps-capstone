@@ -16,7 +16,7 @@ commands:
 jobs:            
   build-frontend:
     docker:
-      - image: vipavani85/capstone:latest
+      - image: cimg/node:16.5.0
     steps:
       - checkout
       - restore_cache:
@@ -289,7 +289,48 @@ jobs:
             else
               return 1
             fi
-      - destroy-environment            
+      - destroy-environment   
+
+  cloudfront-update:
+    docker:
+      - image: python:3.7-alpine3.12
+    steps:
+      # Checkout code from git
+      - checkout
+      - add_ssh_keys:
+          fingerprints: ["d6:a0:ab:8b:87:f6:b8:9d:4b:00:52:de:fd:8a:2b:4b"]      
+      - run:
+          name: Install dependencies
+          command: |
+           apk add --update tar gzip ansible nodejs npm curl
+           pip install awscli
+      - run:
+          name: Update cloudfront distribution
+          command: |
+            export OldWorkflowID=$(aws cloudformation \
+                list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
+                --no-paginate --output text)
+            echo OldWorkflowId: "${OldWorkflowID}"
+
+            export STACKS=$(aws cloudformation list-stacks \
+              --query "StackSummaries[*].StackName" \
+              --stack-status-filter CREATE_COMPLETE --no-paginate --output text) 
+            echo Stacks: "${STACKS}"
+
+            aws cloudformation deploy \
+              --template-file .circleci/files/cloudfront.yml \
+              --tags project=udapeople-vitorpavan \
+              --stack-name udapeople-cloudfront \
+              --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"          
+
+            if [[ -n "${OldWorkflowID}" ]]
+            then
+              echo "s3://udapeople-${OldWorkflowID}"
+              aws s3 rb "s3://udapeople-${OldWorkflowID}" --force
+              aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
+              aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
+            fi
+      - destroy-environment      
 
 workflows:
   default:
@@ -330,3 +371,8 @@ workflows:
           filters:
             branches:
               only: main
+      - cloudfront-update:
+          requires: [smoke-test]
+          filters:
+            branches:
+              only: main              
