@@ -182,25 +182,21 @@ jobs:
       - run: 
           name: Copy built frontend files to the S3 bucket
           command: |
-            aws s3 cp ./frontend/dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}/ --recursive      
+            aws s3 cp ./frontend/build s3://udacitycapstone-${CIRCLE_WORKFLOW_ID:0:7}/ --recursive      
       - destroy-environment 
 
   deploy-backend:
     docker:
-      # Docker image here that supports Ansible
       - image: python:3.7-alpine3.12
     steps:
-      # Checkout code from git
       - checkout
       - run:
           name: Install dependencies
           command: |
            apk add --update tar gzip ansible nodejs npm curl
            pip install awscli      
-      # Add ssh keys with fingerprint
       - add_ssh_keys:
           fingerprints: ["d6:a0:ab:8b:87:f6:b8:9d:4b:00:52:de:fd:8a:2b:4b"]      
-      # attach workspace
       - attach_workspace:
           at: ~/project
       - restore_cache:
