@@ -138,7 +138,7 @@ jobs:
           command: |
             cd .circleci/ansible/
             aws ec2 describe-instances --region ${AWS_DEFAULT_REGION} \
-            --filters "Name=tag:Name,Values=backend-ec2-${CIRCLE_WORKFLOW_ID}" \
+            --filters "Name=tag:Name,Values=backend-ec2-${CIRCLE_WORKFLOW_ID:0:7}" \
             --query "Reservations[*].Instances[0].PublicDnsName" \
             --output text >> inventory.txt
             cat inventory.txt
@@ -148,6 +148,84 @@ jobs:
             cd .circleci/ansible/
             ansible-playbook -i inventory.txt configure-server.yml -l web     
       - destroy-environment
+
+  deploy-frontend:
+    docker:
+      - image: python:3.7-alpine3.12
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+           apk add --update tar gzip ansible nodejs npm curl
+           pip install awscli
+      - restore_cache:
+          keys: [frontend-build]           
+      - run:
+          name: Get backend url
+          command: |
+            export BACKEND_IP=$(aws ec2 describe-instances \
+              --region ${AWS_DEFAULT_REGION} \
+              --filters "Name=tag:Name,Values=backend-ec2-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --query "Reservations[*].Instances[0].PublicDnsName" \
+              --output text)
+            export REACT_APP_API_URL="http://${BACKEND_IP}:3030"
+            echo "REACT_APP_API_URL=$REACT_APP_API_URL" > frontend/.env
+            echo "${REACT_APP_API_URL}"
+      - run:
+          name: Deploy frontend objects
+          command: |
+            cd frontend
+            npm install webpack-dev-server -g
+            npm install
+            npm run build
+      - run: 
+          name: Copy built frontend files to the S3 bucket
+          command: |
+            aws s3 cp ./frontend/dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}/ --recursive      
+      - destroy-environment 
+
+  deploy-backend:
+    docker:
+      # Docker image here that supports Ansible
+      - image: python:3.7-alpine3.12
+    steps:
+      # Checkout code from git
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+           apk add --update tar gzip ansible nodejs npm curl
+           pip install awscli      
+      # Add ssh keys with fingerprint
+      - add_ssh_keys:
+          fingerprints: ["d6:a0:ab:8b:87:f6:b8:9d:4b:00:52:de:fd:8a:2b:4b"]      
+      # attach workspace
+      - attach_workspace:
+          at: ~/project
+      - restore_cache:
+          keys: [backend-build]      
+      - run:
+          name: Install dependencies
+          command: |
+            cd backend
+            npm install   
+      - run:
+          name: Get the public DNS of EC2 from AWS
+          command: |
+            aws ec2 describe-instances --region ${AWS_DEFAULT_REGION} \
+            --filters "Name=tag:Name,Values=backend-ec2-${CIRCLE_WORKFLOW_ID:0:7}" \
+            --query "Reservations[*].Instances[0].PublicDnsName" \
+            --output text >> .circleci/ansible/inventory.txt
+            cat .circleci/ansible/inventory.txt
+      - run:
+          name: Deploy backend
+          command: |
+            tar -C backend -czvf artifact.tar.gz .
+            cd .circleci/ansible
+            cat inventory.txt
+            ansible-playbook -i inventory.txt  deploy-backend.yml -l web        
+      - destroy-environment         
 
 workflows:
   default:
@@ -168,3 +246,13 @@ workflows:
           filters:
             branches:
               only: main
+      - deploy-frontend:
+          requires: [configure-infrastructure]
+          filters:
+            branches:
+              only: main
+      - deploy-backend:
+          requires: [configure-infrastructure]
+          filters:
+            branches:
+              only: main              
