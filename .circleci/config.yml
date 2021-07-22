@@ -22,7 +22,9 @@ jobs:
       - run:
           name: test docker
           command: |
-            ls 
+            cd backend
+            ls
+            npm run start
             
   build-frontend:
     docker:
