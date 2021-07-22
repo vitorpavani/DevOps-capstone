@@ -210,7 +210,7 @@ jobs:
 
   deploy-backend:
     docker:
-      - image: python:3.7-alpine3.12
+      - image: "vipavani85/capstone:${CIRCLE_WORKFLOW_ID:0:7}"
     steps:
       - checkout
       - run:
@@ -221,9 +221,7 @@ jobs:
       - add_ssh_keys:
           fingerprints: ["d6:a0:ab:8b:87:f6:b8:9d:4b:00:52:de:fd:8a:2b:4b"]      
       - attach_workspace:
-          at: ~/project
-      - restore_cache:
-          keys: [backend-build]      
+          at: ~/project 
       - run:
           name: Install dependencies
           command: |
@@ -249,13 +247,17 @@ jobs:
 workflows:
   default:
     jobs:
-      - run-docker
       - build-frontend
       - build-backend
       - test-frontend:
           requires: [build-frontend]
       - test-backend:
           requires: [build-backend]
+      - run-docker:
+          requires: [test-frontend, test-backend]
+          filters:
+            branches:
+              only: main
       - deploy-infrastructure:
           requires: [test-frontend, test-backend]
           filters:
