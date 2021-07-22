@@ -15,17 +15,22 @@ commands:
 
 jobs:
   run-docker:
-    docker:
-      - image: vipavani85/capstone:v1
+    machine: true
     steps:
-      - checkout
-      - run:
-          name: test docker
-          command: |
+        - checkout
+        # start proprietary DB using private Docker image
+        # with credentials stored in the UI
+        - run: |
+            echo "$DOCKER_PASSWORD" | docker login --username $DOCKER_USER --password $DOCKER_PASSWORD
+            docker run hello-world
+
+        # build the application image
+        - run: |
             cd backend
-            npm install
-            ls
-            exit 1
+            docker build . -t vipavani85/capstone:$CIRCLE_WORKFLOW_ID:0:7
+
+        # deploy the image
+        - run: docker push vipavani85/capstone:$CIRCLE_WORKFLOW_ID:0:7
             
   build-frontend:
     docker:
