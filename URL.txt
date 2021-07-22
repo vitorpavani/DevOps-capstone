@@ -1,0 +1,7 @@
+GitHub - https://github.com/vitorpavani/DevOps-capstone
+Frontend - http://udacitycapstone-17edb39.s3-website-us-east-1.amazonaws.com
+Backend - http://ec2-34-206-64-5.compute-1.amazonaws.com:3030/
+CloudFront - http://d1hfdcd33k7lag.cloudfront.net/
+Docker Repo - https://hub.docker.com/repository/docker/vipavani85/capstone/general
+
+
