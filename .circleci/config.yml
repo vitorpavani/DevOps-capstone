@@ -223,17 +223,14 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-           apk add --update tar gzip ansible curl
-           pip install awscli      
+            apk add --update tar gzip ansible curl
+            pip install awscli  
+            cd backend
+            npm install      
       - add_ssh_keys:
           fingerprints: ["d6:a0:ab:8b:87:f6:b8:9d:4b:00:52:de:fd:8a:2b:4b"]      
       - attach_workspace:
           at: ~/project 
-      - run:
-          name: Install dependencies
-          command: |
-            cd backend
-            npm install   
       - run:
           name: Get the public DNS of EC2 from AWS
           command: |
@@ -362,7 +359,7 @@ workflows:
             branches:
               only: main
       - deploy-backend:
-        #  requires: [configure-infrastructure]
+          requires: [configure-infrastructure]
           filters:
             branches:
               only: main              
