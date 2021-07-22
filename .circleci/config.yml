@@ -1,5 +1,18 @@
 version: 2.1
 
+commands:
+  destroy-environment:
+    description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
+    steps:
+      - run:
+          name: Destroy environments
+          when: on_fail
+          command: |
+            echo destroy environment
+              aws s3 rb "s3://udacitycapstone-${CIRCLE_WORKFLOW_ID}" --force 
+              aws cloudformation delete-stack --stack-name "udacitycapstone-frontend-${CIRCLE_WORKFLOW_ID}"
+              aws cloudformation delete-stack --stack-name "udacitycapstone-backend-${CIRCLE_WORKFLOW_ID}"
+
 jobs:
   build-frontend:
     docker:
@@ -45,7 +58,7 @@ jobs:
           name: Test the code
           command: |
             cd frontend
-            npm run test             
+            npm run test
 
   test-backend:
     docker:
@@ -58,7 +71,54 @@ jobs:
           name: Test the code
           command: |
             cd backend
-            npm run test      
+            npm run test
+
+  deploy-infrastructure:
+    docker:
+      - image: python:3.7-alpine3.12
+    steps:
+      # Checkout code from git
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --update tar gzip curl
+            pip install awscli
+
+      - run:
+          name: Ensure back-end infrastructure exists
+          command: |
+            aws cloudformation deploy \
+              --template-file .circleci/files/backend.yml \
+              --tags project=udacitycapstone-vitorpavan \
+              --stack-name udacitycapstone-backend-${CIRCLE_WORKFLOW_ID:0:7:0:7} \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
+      - run:
+          name: Ensure front-end infrastructure exist
+          command: |
+            aws cloudformation deploy \
+              --template-file .circleci/files/frontend.yml \
+              --tags project=udacitycapstone-vitorpavan \
+              --stack-name udacitycapstone-frontend-${CIRCLE_WORKFLOW_ID:0:7} \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
+      - run:
+          name: Get and save public DNS of EC2 instance to https://memstash.io/
+          command: |
+            export BACKEND_API=$(aws ec2 describe-instances \
+              --region ${AWS_DEFAULT_REGION}\
+              --filters "Name=tag:Name,Values=backend-ec2-${CIRCLE_WORKFLOW_ID:0:7}"\
+              --query "Reservations[*].Instances[0].PublicDnsName" \
+              --output text)
+            echo ${BACKEND_API}
+            # export URL="http://${BACKEND_API}:3030/api/status"
+            echo ${URL}
+            curl -H "Content-Type: text/plain" \
+              -H "token:${CIRCLE_WORKFLOW_ID:0:7}" \
+              --request PUT \
+              --data "$URL" \
+              https://api.memstash.io/values/url-${CIRCLE_WORKFLOW_ID:0:7}
+            exit 1
+      - destroy-environment
 
 workflows:
   default:
@@ -69,3 +129,8 @@ workflows:
           requires: [build-frontend]
       - test-backend:
           requires: [build-backend]
+      - deploy-infrastructure:
+          requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+          filters:
+            branches:
+              only: main
