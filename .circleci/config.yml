@@ -27,10 +27,10 @@ jobs:
         # build the application image
         - run: |
             cd backend
-            docker build . -t vipavani85/capstone:$CIRCLE_WORKFLOW_ID:0:7
+            docker build . -t vipavani85/capstone:${CIRCLE_WORKFLOW_ID:0:7}
 
         # deploy the image
-        - run: docker push vipavani85/capstone:$CIRCLE_WORKFLOW_ID:0:7
+        - run: docker push vipavani85/capstone:${CIRCLE_WORKFLOW_ID:0:7}
             
   build-frontend:
     docker:
