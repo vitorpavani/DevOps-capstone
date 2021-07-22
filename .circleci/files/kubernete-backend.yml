@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nodejs-deployment
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: nodejs
+    spec:
+      containers:
+      - name: backend-node
+        image: vipavani85/capstone:latest
+        ports:
+        - containerPort: 3030
+
+
+
+# aws eks --region us-east-1 update-kubeconfig --name my-eks-6afe898
