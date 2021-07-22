@@ -316,16 +316,16 @@ jobs:
 
             aws cloudformation deploy \
               --template-file .circleci/files/cloudfront.yml \
-              --tags project=udapeople-vitorpavan \
-              --stack-name udapeople-cloudfront \
+              --tags project=udacitycapstone-vitorpavan \
+              --stack-name udacitycapstone-cloudfront \
               --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"          
 
             if [[ -n "${OldWorkflowID}" ]]
             then
-              echo "s3://udapeople-${OldWorkflowID}"
-              aws s3 rb "s3://udapeople-${OldWorkflowID}" --force
-              aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
-              aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
+              echo "s3://udacitycapstone-${OldWorkflowID}"
+              aws s3 rb "s3://udacitycapstone-${OldWorkflowID}" --force
+              aws cloudformation delete-stack --stack-name "udacitycapstone-frontend-${OldWorkflowID}"
+              aws cloudformation delete-stack --stack-name "udacitycapstone-backend-${OldWorkflowID}"
             fi
       - destroy-environment      
 
