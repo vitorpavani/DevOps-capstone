@@ -14,6 +14,16 @@ commands:
               aws cloudformation delete-stack --stack-name "udacitycapstone-backend-${CIRCLE_WORKFLOW_ID:0:7}"
 
 jobs:
+  run-docker:
+    docker:
+      - image: vipavani85/capstone:v1
+    steps:
+      - checkout
+      - run:
+          name: test docker
+          command: |
+            ls 
+            
   build-frontend:
     docker:
       - image: cimg/node:16.5.0
@@ -29,7 +39,7 @@ jobs:
             npm run build
       - save_cache:
           paths: [frontend/node_modules]
-          key: frontend-build-{{ checksum "frontend/package.json" }}
+          key: frontend-build-{{ checksum "frontend/package.json" }}          
 
   build-backend:
     docker:
@@ -226,6 +236,7 @@ jobs:
 workflows:
   default:
     jobs:
+      - run-docker
       - build-frontend
       - build-backend
       - test-frontend:
