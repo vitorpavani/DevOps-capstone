@@ -329,7 +329,7 @@ jobs:
             fi
       - destroy-environment
 
-  test-cluster:
+  config-cluster:
     executor: aws-eks/python3
     parameters:
       cluster-name:
@@ -343,46 +343,22 @@ jobs:
           cluster-name: << parameters.cluster-name >>
       - run:
           command: |
-            # kubectl apply -f .circleci/files/service.yml 
-            #  kubectl get services
-            #  kubectl get nodes -o wide
-            #  kubectl get pods --all-namespaces -o wide
-            # Create EKS          
-            # curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
-            # sudo mv /tmp/eksctl /usr/local/bin
-            # eksctl version
-            # eksctl create cluster \--name my-cluster-circleci \
-            #     --region us-east-1 \
-            #     --with-oidc \
-            #     --ssh-access \
-            #     --ssh-public-key udacity \
-            #     --managed
-
-            # kubectl apply -f backend/blue/blue-controller.json
-            # kubectl apply -f backend/green/green-controller.json
-            # kubectl apply -f backend/blue-green-service.json
-
+            kubectl apply -f backend/blue/blue-controller.json
+            kubectl apply -f backend/green/green-controller.json
+            kubectl apply -f backend/blue-green-service.json
             kubectl get services
             kubectl get pods
 
 
-          name: Test cluster
+          name: Config cluster
 orbs:
   aws-eks: circleci/aws-eks@0.2.3
   kubernetes: circleci/kubernetes@0.4.0
 workflows:
   deployment:
     jobs:
-      # - aws-eks/create-cluster:
-      #     cluster-name: my-eks-demo
-      - test-cluster:
+      - config-cluster:
           cluster-name: my-eks-demo
-      #     requires:
-      #       - aws-eks/create-cluster
-      # - aws-eks/delete-cluster:
-      #     cluster-name: my-eks-demo
-      #     requires:
-      #       - test-cluster
 
 #   test-cluster:
 #     executor: aws-eks/python3
