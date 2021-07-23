@@ -382,52 +382,63 @@ orbs:
 workflows:
   deployment:
     jobs:
-      # - aws-eks/create-cluster:
-      #     cluster-name: my-eks-demo1
-      - publish_image
-      - config-cluster:
+      - build-frontend
+      - build-backend
+      - test-frontend:
+          requires: [build-frontend]
+      - test-backend:
+          requires: [build-backend]
+      - run-docker:
+          requires: [test-frontend, test-backend]
+          filters:
+            branches:
+              only: main
+      - deploy-infrastructure:
+          requires: [test-frontend, test-backend]
+          filters:
+            branches:
+              only: main
+      - aws-eks/create-cluster:
           cluster-name: my-eks-demo1
           requires:
+            - test-backend
+          filters:
+            branches:
+              only: main
+      - publish_image:
+          filters:
+            branches:
+              only: main        
+      - config-cluster:
+          cluster-name: my-eks-demo1
+          filters:
+            branches:
+              only: main          
+          requires:
             - publish_image
-            #- aws-eks/create-cluster
-      # - build-frontend
-      # - build-backend
-      # - test-frontend:
-      #     requires: [build-frontend]
-      # - test-backend:
-      #     requires: [build-backend]
-      # - run-docker:
-      #     requires: [test-frontend, test-backend]
-      #     filters:
-      #       branches:
-      #         only: main
-      # - deploy-infrastructure:
-      #     requires: [test-frontend, test-backend]
-      #     filters:
-      #       branches:
-      #         only: main
-      # - configure-infrastructure:
-      #     requires: [deploy-infrastructure, run-docker]
-      #     filters:
-      #       branches:
-      #         only: main
-      # - deploy-frontend:
-      #     requires: [configure-infrastructure]
-      #     filters:
-      #       branches:
-      #         only: main
-      # - deploy-backend:
-      #     requires: [configure-infrastructure]
-      #     filters:
-      #       branches:
-      #         only: main
-      # - smoke-test:
-      #     requires: [deploy-frontend, deploy-backend]
-      #     filters:
-      #       branches:
-      #         only: main
-      # - cloudfront-update:
-      #     requires: [smoke-test]
-      #     filters:
-      #       branches:
-      #         only: main
+            - aws-eks/create-cluster
+      - configure-infrastructure:
+          requires: [deploy-infrastructure, run-docker]
+          filters:
+            branches:
+              only: main
+      - deploy-frontend:
+          requires: [configure-infrastructure]
+          filters:
+            branches:
+              only: main
+      - deploy-backend:
+          requires: [configure-infrastructure]
+          filters:
+            branches:
+              only: main
+      - smoke-test:
+          requires: [deploy-frontend, deploy-backend]
+          filters:
+            branches:
+              only: main
+      - cloudfront-update:
+          requires: [smoke-test]
+          filters:
+            branches:
+              only: main
