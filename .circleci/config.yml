@@ -346,6 +346,7 @@ jobs:
             # kubectl apply -f .circleci/files/service.yml 
             kubectl get services
             kubectl get nodes -o wide
+            kubectl get pods --all-namespaces -o wide
           name: Test cluster
 orbs:
   aws-eks: circleci/aws-eks@0.2.3
