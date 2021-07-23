@@ -361,13 +361,13 @@ workflows:
           cluster-name: eks-demo-deployment
           # requires:
           #   - aws-eks/create-cluster
-      # - aws-eks/update-container-image:
-      #     cluster-name: eks-demo-deployment
-      #     resource-name: "deployment/nodejs"
-      #     container-image-updates: "vipavani85/capstone:latest"
-      #     record: true
-      #     requires:
-      #       - create-deployment
+      - aws-eks/update-container-image:
+          cluster-name: eks-demo-deployment
+          resource-name: "deployment/nodejs"
+          container-image-updates: "public.ecr.aws/amazonlinux/amazonlinux:latest"
+          record: true
+          requires:
+            - create-deployment
       # - aws-eks/delete-cluster:
       #     cluster-name: eks-demo-deployment
       #     requires:
