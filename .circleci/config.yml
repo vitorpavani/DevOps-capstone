@@ -387,25 +387,25 @@ workflows:
           filters:
             branches:
               only: main
-      # - aws-eks/create-cluster:
-      #     cluster-name: eks-bluegreen
-      #     requires:
-      #       - test-backend
-      #     filters:
-      #       branches:
-      #         only: main
+      - aws-eks/create-cluster:
+          cluster-name: eks-bluegreen
+          requires:
+            - test-backend
+          filters:
+            branches:
+              only: main
       - publish_image:
           filters:
             branches:
               only: main        
-      # - config-cluster:
-      #     cluster-name: eks-bluegreen
-      #     filters:
-      #       branches:
-      #         only: main          
-      #     requires:
-      #       - publish_image
-      #       - aws-eks/create-cluster
+      - config-cluster:
+          cluster-name: eks-bluegreen
+          filters:
+            branches:
+              only: main          
+          requires:
+            - publish_image
+            - aws-eks/create-cluster
       - configure-infrastructure:
           requires: [deploy-infrastructure, lint-docker]
           filters:
