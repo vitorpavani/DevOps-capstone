@@ -407,7 +407,7 @@ workflows:
       #       - publish_image
       #       - aws-eks/create-cluster
       - configure-infrastructure:
-          requires: [deploy-infrastructure, run-docker]
+          requires: [deploy-infrastructure, lint-docker]
           filters:
             branches:
               only: main
