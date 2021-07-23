@@ -14,7 +14,3 @@ spec:
         image: vipavani85/capstone:latest
         ports:
         - containerPort: 3030
-
-
-
-# aws eks --region us-east-1 update-kubeconfig --name my-eks-6afe898

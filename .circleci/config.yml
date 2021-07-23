@@ -342,7 +342,7 @@ jobs:
           cluster-name: << parameters.cluster-name >>
           install-kubectl: true
       - kubernetes/create-or-update-resource:
-          resource-file-path: ".circleci/files/kubernete-backend.yaml"
+          resource-file-path: ".circleci/files/kubernete-backend.yml"
           resource-name: "deployment/backend"
           get-rollout-status: true
           show-kubectl-command: true
@@ -355,12 +355,12 @@ orbs:
 workflows:
   deployment:
     jobs:
-      - aws-eks/create-cluster:
-          cluster-name: eks-demo-deployment
+      # - aws-eks/create-cluster:
+      #     cluster-name: eks-demo-deployment
       - create-deployment:
           cluster-name: eks-demo-deployment
-          requires:
-            - aws-eks/create-cluster
+          # requires:
+          #   - aws-eks/create-cluster
       - aws-eks/update-container-image:
           cluster-name: eks-demo-deployment
           resource-name: "deployment/backend"
