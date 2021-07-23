@@ -9,11 +9,11 @@ commands:
           when: on_fail
           command: |
             echo destroy environment
-              aws s3 rb "s3://udacitycapstone-${CIRCLE_WORKFLOW_ID:0:7}" --force 
+              aws s3 rb "s3://udacitycapstone-${CIRCLE_WORKFLOW_ID:0:7}" --force
               aws cloudformation delete-stack --stack-name "udacitycapstone-frontend-${CIRCLE_WORKFLOW_ID:0:7}"
               aws cloudformation delete-stack --stack-name "udacitycapstone-backend-${CIRCLE_WORKFLOW_ID:0:7}"
 
-jobs:            
+jobs:
   build-frontend:
     docker:
       - image: cimg/node:16.5.0
@@ -29,7 +29,7 @@ jobs:
             npm run build
       - save_cache:
           paths: [frontend/node_modules]
-          key: frontend-build-{{ checksum "frontend/package.json" }}          
+          key: frontend-build-{{ checksum "frontend/package.json" }}
 
   build-backend:
     docker:
@@ -78,7 +78,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: ['backend-build-{{ checksum "backend/package.json" }}']        
+          keys: ['backend-build-{{ checksum "backend/package.json" }}']
       - run:
           name: login docker user
           command: |
@@ -88,11 +88,11 @@ jobs:
           command: |
             cd backend
             wget -O ./hadolint https://github.com/hadolint/hadolint/releases/download/v1.16.3/hadolint-Linux-x86_64 &&\
-            chmod +x ./hadolint      
-            ./hadolint Dockerfile      
+            chmod +x ./hadolint
+            ./hadolint Dockerfile
       # build the application image
       - run:
-          name: build the application image 
+          name: build the application image
           command: |
             cd backend
             docker build . -t vipavani85/capstone:latest
@@ -101,7 +101,7 @@ jobs:
       - run:
           name: deploy the image
           command: |
-            docker push vipavani85/capstone:latest          
+            docker push vipavani85/capstone:latest
 
   deploy-infrastructure:
     docker:
@@ -156,7 +156,7 @@ jobs:
       - add_ssh_keys:
           fingerprints: ["d6:a0:ab:8b:87:f6:b8:9d:4b:00:52:de:fd:8a:2b:4b"]
       - attach_workspace:
-          at: ~/project      
+          at: ~/project
       - run:
           name: Install system dependencies
           command: |
@@ -176,7 +176,7 @@ jobs:
           name: Configure server
           command: |
             cd .circleci/ansible/
-            ansible-playbook -i inventory.txt configure-server.yml -l web     
+            ansible-playbook -i inventory.txt configure-server.yml -l web
       - destroy-environment
 
   deploy-frontend:
@@ -190,7 +190,7 @@ jobs:
            apk add --update tar gzip ansible nodejs npm curl
            pip install awscli
       - restore_cache:
-          keys: [frontend-build]           
+          keys: [frontend-build]
       - run:
           name: Get backend url
           command: |
@@ -209,11 +209,11 @@ jobs:
             npm install webpack-dev-server -g
             npm install
             npm run build
-      - run: 
+      - run:
           name: Copy built frontend files to the S3 bucket
           command: |
-            aws s3 cp ./frontend/build s3://udacitycapstone-${CIRCLE_WORKFLOW_ID:0:7}/ --recursive      
-      - destroy-environment 
+            aws s3 cp ./frontend/build s3://udacitycapstone-${CIRCLE_WORKFLOW_ID:0:7}/ --recursive
+      - destroy-environment
 
   deploy-backend:
     docker:
@@ -224,13 +224,13 @@ jobs:
           name: Install dependencies
           command: |
             apk add --update tar gzip ansible curl
-            pip install awscli  
+            pip install awscli
             cd backend
-            npm install      
+            npm install
       - add_ssh_keys:
-          fingerprints: ["d6:a0:ab:8b:87:f6:b8:9d:4b:00:52:de:fd:8a:2b:4b"]      
+          fingerprints: ["d6:a0:ab:8b:87:f6:b8:9d:4b:00:52:de:fd:8a:2b:4b"]
       - attach_workspace:
-          at: ~/project 
+          at: ~/project
       - run:
           name: Get the public DNS of EC2 from AWS
           command: |
@@ -245,8 +245,8 @@ jobs:
             tar -C backend -czvf artifact.tar.gz .
             cd .circleci/ansible
             cat inventory.txt
-            ansible-playbook -i inventory.txt  deploy-backend.yml -l web        
-      - destroy-environment   
+            ansible-playbook -i inventory.txt  deploy-backend.yml -l web
+      - destroy-environment
 
   smoke-test:
     docker:
@@ -270,9 +270,9 @@ jobs:
             export API_URL="http://${BACKEND_IP}:3030/"
             echo ${API_URL}
             if (curl -s ${API_URL}) | grep "API Running"
-            then 
+            then
               return 0
-            else 
+            else
               return 1
             fi
       - run:
@@ -286,7 +286,7 @@ jobs:
             else
               return 1
             fi
-      - destroy-environment   
+      - destroy-environment
 
   cloudfront-update:
     docker:
@@ -295,7 +295,7 @@ jobs:
       # Checkout code from git
       - checkout
       - add_ssh_keys:
-          fingerprints: ["d6:a0:ab:8b:87:f6:b8:9d:4b:00:52:de:fd:8a:2b:4b"]      
+          fingerprints: ["d6:a0:ab:8b:87:f6:b8:9d:4b:00:52:de:fd:8a:2b:4b"]
       - run:
           name: Install dependencies
           command: |
@@ -311,14 +311,14 @@ jobs:
 
             export STACKS=$(aws cloudformation list-stacks \
               --query "StackSummaries[*].StackName" \
-              --stack-status-filter CREATE_COMPLETE --no-paginate --output text) 
+              --stack-status-filter CREATE_COMPLETE --no-paginate --output text)
             echo Stacks: "${STACKS}"
 
             aws cloudformation deploy \
               --template-file .circleci/files/cloudfront.yml \
               --tags project=udacitycapstone-vitorpavan \
               --stack-name udacitycapstone-cloudfront \
-              --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"          
+              --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"
 
             if [[ -n "${OldWorkflowID}" ]]
             then
@@ -327,8 +327,8 @@ jobs:
               aws cloudformation delete-stack --stack-name "udacitycapstone-frontend-${OldWorkflowID}"
               aws cloudformation delete-stack --stack-name "udacitycapstone-backend-${OldWorkflowID}"
             fi
-      - destroy-environment      
-      
+      - destroy-environment
+
   create-deployment:
     executor: aws-eks/python3
     parameters:
@@ -361,17 +361,17 @@ workflows:
           cluster-name: eks-demo-deployment
           # requires:
           #   - aws-eks/create-cluster
-      - aws-eks/update-container-image:
-          cluster-name: eks-demo-deployment
-          resource-name: "deployment/nodejs"
-          container-image-updates: "vipavani85/capstone:latest"
-          record: true
-          requires:
-            - create-deployment
-      - aws-eks/delete-cluster:
-          cluster-name: eks-demo-deployment
-          requires:
-              - aws-eks/update-container-image
+      # - aws-eks/update-container-image:
+      #     cluster-name: eks-demo-deployment
+      #     resource-name: "deployment/nodejs"
+      #     container-image-updates: "vipavani85/capstone:latest"
+      #     record: true
+      #     requires:
+      #       - create-deployment
+      # - aws-eks/delete-cluster:
+      #     cluster-name: eks-demo-deployment
+      #     requires:
+      #         - aws-eks/update-container-image
 
 
 #   test-cluster:
@@ -440,7 +440,7 @@ workflows:
       #     requires: [configure-infrastructure]
       #     filters:
       #       branches:
-      #         only: main              
+      #         only: main
       # - smoke-test:
       #     requires: [deploy-frontend, deploy-backend]
       #     filters:
@@ -450,4 +450,4 @@ workflows:
       #     requires: [smoke-test]
       #     filters:
       #       branches:
-      #         only: main              
+      #         only: main
