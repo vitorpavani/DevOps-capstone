@@ -344,20 +344,28 @@ jobs:
       - run:
           command: |
             # kubectl apply -f .circleci/files/service.yml 
-            # kubectl get services
-            # kubectl get nodes -o wide
-            # kubectl get pods --all-namespaces -o wide
-            curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
-            sudo mv /tmp/eksctl /usr/local/bin
-            eksctl version
-            eksctl create cluster \--name my-cluster-circleci \
-                --region us-east-1 \
-                --with-oidc \
-                --ssh-access \
-                --ssh-public-key udacity \
-                --managed
+             kubectl get services
+             kubectl get nodes -o wide
+             kubectl get pods --all-namespaces -o wide
+            # Create EKS          
+            # curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+            # sudo mv /tmp/eksctl /usr/local/bin
+            # eksctl version
+            # eksctl create cluster \--name my-cluster-circleci \
+            #     --region us-east-1 \
+            #     --with-oidc \
+            #     --ssh-access \
+            #     --ssh-public-key udacity \
+            #     --managed
+            backend/blue/run_docker.sh
+            backend/blue/upload_docker.sh
+            backend/green/run_docker.sh
+            backend/green/upload_docker.sh
+            kubectl apply -f backend/blue/blue-controller.json
+            kubectl apply -f backend/green/green-controller.json
+            kubectl apply -f backend/blue-green-service.json
 
-
+            kubectl get services
 
 
           name: Test cluster

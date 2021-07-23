@@ -1,26 +1,23 @@
-FROM node:alpine3.14
+FROM python:3.7.3-stretch
 
-# Create app directory
-WORKDIR /usr/src/app
+## Step 1:
+# Create a working directory
+WORKDIR /app
 
-# Install app dependencies
-# A wildcard is used to ensure both package.json AND package-lock.json are copied
-# where available (npm@5+)
-COPY package*.json ./
+## Step 2:
+# Copy source code to working directory
+COPY . app.py /app/
 
-RUN apk add --no-cache \
-    python3==3.9.5-r1 \
-    py3-pip==20.3.4-r1 \
-    && pip3 install awscli==1.20.4 \
-    && rm -rf /var/cache/apk/*
+## Step 3:
+# Install packages from requirements.txt
+# hadolint ignore=DL3013
+RUN pip install --no-cache-dir --upgrade pip &&\
+    pip install --no-cache-dir --trusted-host pypi.python.org -r requirements.txt
 
-RUN npm install
-# If you are building your code for production
-# RUN npm ci --only=production
+## Step 4:
+# Expose port 80
+EXPOSE 80
 
-# Bundle app source
-COPY . .
-
-EXPOSE 3030
-
-CMD [ "node", "server.js" ]
+## Step 5:
+# Run app.py at container launch
+CMD ["python", "app.py"]
