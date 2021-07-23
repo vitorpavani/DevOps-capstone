@@ -357,8 +357,8 @@ workflows:
       #     cluster-name: my-eks-6afe898
       - test-cluster:
           cluster-name: my-eks-6afe898
-          requires:
-            - aws-eks/create-cluster
+          # requires:
+          #   - aws-eks/create-cluster
       # - aws-eks/delete-cluster:
       #     cluster-name: my-eks-6afe898
       #     requires:
