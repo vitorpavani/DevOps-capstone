@@ -73,7 +73,7 @@ jobs:
             cd backend
             npm run test
 
-  run-docker:
+  lint-docker:
     machine: true
     steps:
       - checkout
@@ -91,19 +91,6 @@ jobs:
             chmod +x ./hadolint
             ./hadolint blue/Dockerfile
             ./hadolint green/Dockerfile
-
-      # build the application image
-      - run:
-          name: build the application image
-          command: |
-            cd backend
-            docker build . -t vipavani85/capstone:latest
-
-      # deploy the image
-      - run:
-          name: deploy the image
-          command: |
-            docker push vipavani85/capstone:latest
 
   deploy-infrastructure:
     docker:
@@ -384,22 +371,22 @@ orbs:
 workflows:
   deployment:
     jobs:
-      # - build-frontend
-      # - build-backend
-      # - test-frontend:
-      #     requires: [build-frontend]
-      # - test-backend:
-      #     requires: [build-backend]
+      - build-frontend
+      - build-backend
+      - test-frontend:
+          requires: [build-frontend]
+      - test-backend:
+          requires: [build-backend]
       - run-docker:
           filters:
             branches:
               only: main
-      #     requires: [test-frontend, test-backend]
-      # - deploy-infrastructure:
-      #     requires: [test-frontend, test-backend]
-      #     filters:
-      #       branches:
-      #         only: main
+          requires: [test-frontend, test-backend]
+      - deploy-infrastructure:
+          requires: [test-frontend, test-backend]
+          filters:
+            branches:
+              only: main
       # - aws-eks/create-cluster:
       #     cluster-name: eks-bluegreen
       #     requires:
@@ -407,10 +394,10 @@ workflows:
       #     filters:
       #       branches:
       #         only: main
-      # - publish_image:
-      #     filters:
-      #       branches:
-      #         only: main        
+      - publish_image:
+          filters:
+            branches:
+              only: main        
       # - config-cluster:
       #     cluster-name: eks-bluegreen
       #     filters:
@@ -419,28 +406,28 @@ workflows:
       #     requires:
       #       - publish_image
       #       - aws-eks/create-cluster
-      # - configure-infrastructure:
-      #     requires: [deploy-infrastructure, run-docker]
-      #     filters:
-      #       branches:
-      #         only: main
-      # - deploy-frontend:
-      #     requires: [configure-infrastructure]
-      #     filters:
-      #       branches:
-      #         only: main
-      # - deploy-backend:
-      #     requires: [configure-infrastructure]
-      #     filters:
-      #       branches:
-      #         only: main
-      # - smoke-test:
-      #     requires: [deploy-frontend, deploy-backend]
-      #     filters:
-      #       branches:
-      #         only: main
-      # - cloudfront-update:
-      #     requires: [smoke-test]
-      #     filters:
-      #       branches:
-      #         only: main
+      - configure-infrastructure:
+          requires: [deploy-infrastructure, run-docker]
+          filters:
+            branches:
+              only: main
+      - deploy-frontend:
+          requires: [configure-infrastructure]
+          filters:
+            branches:
+              only: main
+      - deploy-backend:
+          requires: [configure-infrastructure]
+          filters:
+            branches:
+              only: main
+      - smoke-test:
+          requires: [deploy-frontend, deploy-backend]
+          filters:
+            branches:
+              only: main
+      - cloudfront-update:
+          requires: [smoke-test]
+          filters:
+            branches:
+              only: main
