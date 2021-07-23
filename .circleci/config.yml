@@ -341,10 +341,19 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Docker Login
+          name: build green 
           command: |
-
             docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+            cd backend/green/
+            ./run_docker.sh
+            ./upload_docker.sh
+      - run:
+          name: build blue 
+          command: |
+            docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+            cd backend/blue/
+            ./run_docker.sh
+            ./upload_docker.sh
 
   config-cluster:
     executor: aws-eks/python3
