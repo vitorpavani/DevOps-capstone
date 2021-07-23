@@ -342,6 +342,9 @@ jobs:
       - aws-eks/update-kubeconfig-with-authenticator:
           cluster-name: << parameters.cluster-name >>
       - run:
+          name: Install Docker client
+          command: apk add docker-cli
+      - run:
           command: |
             # kubectl apply -f .circleci/files/service.yml 
              kubectl get services
