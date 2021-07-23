@@ -343,7 +343,7 @@ jobs:
           install-kubectl: true
       - kubernetes/create-or-update-resource:
           resource-file-path: ".circleci/files/kubernete-backend.yml"
-          resource-name: "nodejs"
+          resource-name: "deployment/nodejs"
           get-rollout-status: true
           show-kubectl-command: true
 
@@ -363,7 +363,7 @@ workflows:
           #   - aws-eks/create-cluster
       - aws-eks/update-container-image:
           cluster-name: eks-demo-deployment
-          resource-name: "nodejs"
+          resource-name: "deployment/nodejs"
           container-image-updates: "vipavani85/capstone:latest"
           record: true
           requires:
