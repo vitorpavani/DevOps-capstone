@@ -27,6 +27,6 @@ spec:
     spec:
       containers:
         - name: nodejs
-          image: vipavani85/capstone:latest
+          image: docker.io/vipavani85/capstone:latest
           ports:
             - containerPort: 3030
