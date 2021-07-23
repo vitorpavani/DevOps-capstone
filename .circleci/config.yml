@@ -357,7 +357,8 @@ jobs:
             #     --ssh-access \
             #     --ssh-public-key udacity \
             #     --managed
-            ls
+            cd backend/blue
+            ./run_docker.sh
             backend/blue/run_docker.sh
             backend/blue/upload_docker.sh
             backend/green/run_docker.sh
