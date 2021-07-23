@@ -358,11 +358,12 @@ jobs:
             #     --ssh-public-key udacity \
             #     --managed
 
-            kubectl apply -f backend/blue/blue-controller.json
-            kubectl apply -f backend/green/green-controller.json
-            kubectl apply -f backend/blue-green-service.json
+            # kubectl apply -f backend/blue/blue-controller.json
+            # kubectl apply -f backend/green/green-controller.json
+            # kubectl apply -f backend/blue-green-service.json
 
             kubectl get services
+            kubectl get pods
 
 
           name: Test cluster
