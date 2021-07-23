@@ -343,7 +343,7 @@ jobs:
           cluster-name: << parameters.cluster-name >>
       - run:
           command: |
-            kubectl apply -f .circleci/files/service.yml 
+            # kubectl apply -f .circleci/files/service.yml 
             kubectl get services
             kubectl get nodes -o wide
           name: Test cluster
