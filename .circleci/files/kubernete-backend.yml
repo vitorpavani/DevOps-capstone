@@ -1,16 +1,20 @@
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nodejs-deployment
+  name: nodejs
 spec:
-  replicas: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nodejs
   template:
     metadata:
       labels:
         app: nodejs
     spec:
       containers:
-      - name: backend-node
-        image: vipavani85/capstone:latest
-        ports:
-        - containerPort: 3030
+        - name: nodejs
+          image: vipavani85/capstone:latest
+          ports:
+            - containerPort: 3030
