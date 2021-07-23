@@ -350,9 +350,9 @@ jobs:
             # kubectl get deploy,po
             # kubectl expose deployment nodejs --type="LoadBalancer"
             kubectl get nodes
-            kubectl create deployment --image docker.io/vipavani85/capstone:latest node-app
-            kubectl scale deployment node-app --replicas 1
-            kubectl expose deployment node-app --type=NodePort --port 3030
+            kubectl create deployment --image docker.io/vipavani85/capstone:latest node-app2
+            kubectl scale deployment node-app2 --replicas 1
+            kubectl expose deployment node-app2 --type=NodePort --port 3030
             kubectl get services 
             kubectl get nodes -o wide
 
