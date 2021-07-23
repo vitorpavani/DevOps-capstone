@@ -357,9 +357,11 @@ jobs:
             #     --ssh-access \
             #     --ssh-public-key udacity \
             #     --managed
-            backend/blue/run_kubernetes.sh
-            backend/green/run_kubernetes.sh
-            backend/run_kubernetes.sh
+
+            kubectl apply -f backend/blue/blue-controller.json
+            kubectl apply -f backend/green/green-controller.json
+            kubectl apply -f backend/blue-green-service.json
+
             kubectl get services
 
 
