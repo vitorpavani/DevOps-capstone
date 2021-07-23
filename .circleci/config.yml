@@ -329,7 +329,9 @@ jobs:
             fi
       - destroy-environment
 
-  create-deployment:
+
+
+  test-cluster:
     executor: aws-eks/python3
     parameters:
       cluster-name:
@@ -337,37 +339,74 @@ jobs:
           Name of the EKS cluster
         type: string
     steps:
-      - checkout
+      - kubernetes/install
       - aws-eks/update-kubeconfig-with-authenticator:
           cluster-name: << parameters.cluster-name >>
-          install-kubectl: true
-      - kubernetes/create-or-update-resource:
-          resource-file-path: ".circleci/files/kubernete-backend.yml"
-          resource-name: "deployment/nodejs"
-          get-rollout-status: true
-          show-kubectl-command: true
-
+      - run:
+          command: |
+            kubectl get services
+          name: Test cluster
 orbs:
   aws-eks: circleci/aws-eks@0.2.3
   kubernetes: circleci/kubernetes@0.4.0
-
 
 workflows:
   deployment:
     jobs:
       # - aws-eks/create-cluster:
-      #     cluster-name: eks-demo-deployment
-      - create-deployment:
-          cluster-name: eks-demo-deployment
-          # requires:
-          #   - aws-eks/create-cluster
-      - aws-eks/update-container-image:
-          cluster-name: eks-demo-deployment
-          resource-name: "deployment/nodejs"
-          container-image-updates: "public.ecr.aws/amazonlinux/amazonlinux:latest"
-          record: true
+      #     cluster-name: my-eks-6afe898
+      - test-cluster:
+          cluster-name: my-eks-6afe898
           requires:
-            - create-deployment
+            - aws-eks/create-cluster
+      # - aws-eks/delete-cluster:
+      #     cluster-name: my-eks-6afe898
+      #     requires:
+      #       - test-cluster
+
+
+
+
+
+#   create-deployment:
+#     executor: aws-eks/python3
+#     parameters:
+#       cluster-name:
+#         description: |
+#           Name of the EKS cluster
+#         type: string
+#     steps:
+#       - checkout
+#       - aws-eks/update-kubeconfig-with-authenticator:
+#           cluster-name: << parameters.cluster-name >>
+#           install-kubectl: true
+#       - kubernetes/create-or-update-resource:
+#           resource-file-path: ".circleci/files/kubernete-backend.yml"
+#           resource-name: "deployment/nodejs"
+#           get-rollout-status: true
+#           show-kubectl-command: true
+
+# orbs:
+#   aws-eks: circleci/aws-eks@0.2.3
+#   kubernetes: circleci/kubernetes@0.4.0
+
+
+# workflows:
+#   deployment:
+#     jobs:
+#       # - aws-eks/create-cluster:
+#       #     cluster-name: eks-demo-deployment
+#       - create-deployment:
+#           cluster-name: eks-demo-deployment
+#           # requires:
+#           #   - aws-eks/create-cluster
+#       - aws-eks/update-container-image:
+#           cluster-name: eks-demo-deployment
+#           resource-name: "deployment/nodejs"
+#           container-image-updates: "public.ecr.aws/amazonlinux/amazonlinux:latest"
+#           record: true
+#           requires:
+#             - create-deployment
       # - aws-eks/delete-cluster:
       #     cluster-name: eks-demo-deployment
       #     requires:
@@ -406,6 +445,21 @@ workflows:
       #     cluster-name: my-eks-demo
       #     requires:
       #       - test-cluster
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
