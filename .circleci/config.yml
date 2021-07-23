@@ -342,24 +342,11 @@ jobs:
       - aws-eks/update-kubeconfig-with-authenticator:
           cluster-name: << parameters.cluster-name >>
       - run:
-          name: Install Docker Compose
-          command: |
-            curl -L https://github.com/docker/compose/releases/download/1.25.3/docker-compose-`uname -s`-`uname -m` > ~/docker-compose
-            chmod +x ~/docker-compose
-            sudo mv ~/docker-compose /usr/local/bin/docker-compose
-      - run:
-          name: Start container and verify it is working
-          command: |
-            set -x
-            docker-compose up -d
-            docker run --network container:contacts \
-              appropriate/curl --retry 10 --retry-delay 1 --retry-connrefused http://localhost:8080/contacts/test
-      - run:
           command: |
             # kubectl apply -f .circleci/files/service.yml 
-             kubectl get services
-             kubectl get nodes -o wide
-             kubectl get pods --all-namespaces -o wide
+            #  kubectl get services
+            #  kubectl get nodes -o wide
+            #  kubectl get pods --all-namespaces -o wide
             # Create EKS          
             # curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
             # sudo mv /tmp/eksctl /usr/local/bin
@@ -370,16 +357,9 @@ jobs:
             #     --ssh-access \
             #     --ssh-public-key udacity \
             #     --managed
-            cd backend/blue
-            ./run_docker.sh
-            backend/blue/run_docker.sh
-            backend/blue/upload_docker.sh
-            backend/green/run_docker.sh
-            backend/green/upload_docker.sh
-            kubectl apply -f backend/blue/blue-controller.json
-            kubectl apply -f backend/green/green-controller.json
-            kubectl apply -f backend/blue-green-service.json
-
+            backend/blue/run_kubernetes.sh
+            backend/green/run_kubernetes.sh
+            backend/run_kubernetes.sh
             kubectl get services
 
 
